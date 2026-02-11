@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>👋 Welcome, {{ current_user.id }}</h2>
+            <a href="/logout" style="color:red; text-decoration:none;">Logout</a>
+        </div>
+        <p><strong>Shift:</strong> {{ current_user.start_hour }}:00 - {{ current_user.end_hour }}:00</p>
+        
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <script>
+        new Chart(document.getElementById('myChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ labels | tojson }},
+                datasets: [{ 
+                    data: {{ data_values | tojson }},
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b'] 
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

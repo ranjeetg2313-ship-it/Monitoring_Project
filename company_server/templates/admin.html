@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding-bottom: 50px; }
+        .navbar { background: #343a40; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .filter-bar { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+        
+        label { font-size: 0.9em; font-weight: bold; color: #555; }
+        select, input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 150px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        
+        #timeline_div { height: 400px; width: 100%; }
+        .flex-row { display: flex; gap: 20px; }
+        .half-width { flex: 1; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        td, th { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f8f9fa; color: #333; }
+        
+        .role-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; color: white; }
+        .admin-badge { background: #28a745; }
+        .user-badge { background: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span style="font-weight:bold; font-size: 1.2em;">🚀 Admin Panel</span>
+        <a href="/logout" style="color:white; text-decoration:none; background: #dc3545; padding: 5px 10px; border-radius: 4px;">Logout</a>
+    </div>
+
+    <div class="container">
+        <form class="filter-bar" action="/admin" method="GET">
+            <div>
+                <label>User</label><br>
+                <select name="user">
+                    <option value="all" {% if selected_user == 'all' %}selected{% endif %}>All Employees</option>
+                    {% for emp in all_employees %}
+                    <option value="{{ emp }}" {% if selected_user == emp %}selected{% endif %}>{{ emp }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div><label>From Date</label><br><input type="date" name="start_date" value="{{ start_date }}"></div>
+            <div><label>To Date</label><br><input type="date" name="end_date" value="{{ end_date }}"></div>
+            <button type="submit">Filter Data</button>
+        </form>
+
+        <div class="card">
+            <h3>📈 Activity Timeline</h3>
+            <div id="timeline_div"></div>
+        </div>
+
+        <div class="flex-row">
+            <div class="card half-width">
+                <h3>Application Usage</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="card half-width">
+                <h3>Total Hours: <span style="color:#28a745">{{ total_hours }} hrs</span></h3>
+                <table>
+                    <thead><tr><th>Application</th><th>Duration</th></tr></thead>
+                    <tbody>
+                        {% for i in range(labels|length) %}
+                        <tr><td>{{ labels[i] }}</td><td>{{ data_values[i] }} mins</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>👥 Employee List</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Working Hours</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in all_users_data %}
+                    <tr>
+                        <td><strong>{{ u.id }}</strong></td>
+                        <td>{{ u.start_hour }}:00 - {{ u.end_hour }}:00</td>
+                        <td>
+                            {% if u.is_admin %}
+                            <span class="role-badge admin-badge">ADMIN</span>
+                            {% else %}
+                            <span class="role-badge user-badge">USER</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA INJECTION ---
+        const pieLabels = {{ labels | tojson }};
+        const pieData = {{ data_values | tojson }};
+        const rawTimelineData = {{ timeline_data | tojson }};
+
+        // Convert string dates back to JS Date objects
+        const chartRows = rawTimelineData.map(item => {
+            return [
+                item.row_label, 
+                item.bar_label, 
+                new Date(item.start), 
+                new Date(item.end)
+            ];
+        });
+
+        // --- GOOGLE TIMELINE CHART ---
+        google.charts.load('current', {'packages':['timeline']});
+        google.charts.setOnLoadCallback(drawTimeline);
+        
+        function drawTimeline() {
+            var container = document.getElementById('timeline_div');
+            var chart = new google.visualization.Timeline(container);
+            var dataTable = new google.visualization.DataTable();
+
+            dataTable.addColumn({ type: 'string', id: 'User' });
+            dataTable.addColumn({ type: 'string', id: 'Application' });
+            dataTable.addColumn({ type: 'date', id: 'Start' });
+            dataTable.addColumn({ type: 'date', id: 'End' });
+
+            if (chartRows.length > 0) {
+                dataTable.addRows(chartRows);
+                chart.draw(dataTable, { 
+                    timeline: { showRowLabels: true },
+                    avoidOverlappingGridLines: false
+                });
+            } else {
+                container.innerHTML = "<div style='padding:50px; text-align:center; color:#999;'>No activity found for this selection.</div>";
+            }
+        }
+
+        // --- CHART.JS PIE CHART ---
+        const ctx = document.getElementById('pieChart').getContext('2d');
+        if (pieLabels.length > 0) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: pieLabels,
+                    datasets: [{ 
+                        data: pieData, 
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796']
+                    }]
+                },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register</title>
+    <style>
+        body { display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f2f5; font-family: sans-serif; }
+        .box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .row { display: flex; gap: 10px; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="text-align:center">Register Employee</h2>
+        <form method="POST">
+            <label>Computer Name</label>
+            <input type="text" name="username" placeholder="e.g. MSI-GAMING" required>
+            
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Password" required>
+            
+            <label>Working Hours (Start - End)</label>
+            <div class="row">
+                <input type="number" name="start" placeholder="9" required>
+                <input type="number" name="end" placeholder="18" required>
+            </div>
+            
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</body>
+</html>
