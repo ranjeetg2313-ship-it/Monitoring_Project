@@ -15,9 +15,9 @@ CONFIG_URL = f"{SERVER_BASE}/get_settings/{SYSTEM_ID}"
 
 # LIST OF APPS TO IGNORE (Background / System Noise)
 IGNORE_APPS = [
-    "explorer.exe", "SearchApp.exe", "LockApp.exe", 
+    "explorer.exe", "SearchApp.exe", #"LockApp.exe", 
     "ShellExperienceHost.exe", "SystemSettings.exe", 
-    "TextInputHost.exe", "RuntimeBroker.exe", "Taskmgr.exe"
+    "TextInputHost.exe", "RuntimeBroker.exe", #"Taskmgr.exe"
 ]
 
 # Default shift values (Overwritten by server)
